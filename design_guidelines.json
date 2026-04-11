@@ -1,0 +1,132 @@
+{
+  "project_context": {
+    "domain": "Gaming / Minecraft Server",
+    "app_type": "Landing Page (Maintenance / Countdown)",
+    "theme": "Dark and Light Modes (Dark Default)",
+    "archetype": "Archetype 7 (Electric & Neon) - tailored for premium gaming with magenta/purple accents matching the provided logo"
+  },
+  "brand_colors": {
+    "primary": "#D946EF",
+    "primary_hover": "#C026D3",
+    "dark": {
+      "background": "#050505",
+      "foreground": "#FFFFFF",
+      "card_surface": "rgba(255, 255, 255, 0.03)",
+      "border": "rgba(255, 255, 255, 0.1)",
+      "ambient_glow": "rgba(217, 70, 239, 0.15)"
+    },
+    "light": {
+      "background": "#FAFAFA",
+      "foreground": "#0A0A0A",
+      "card_surface": "rgba(0, 0, 0, 0.02)",
+      "border": "rgba(0, 0, 0, 0.08)",
+      "ambient_glow": "rgba(217, 70, 239, 0.1)"
+    }
+  },
+  "typography": {
+    "fonts": [
+      {
+        "family": "Unbounded",
+        "url": "https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;700;900&display=swap",
+        "usage": "H1, H2, Countdown Numbers, Overlines"
+      },
+      {
+        "family": "Outfit",
+        "url": "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap",
+        "usage": "Body text, paragraphs, buttons, small labels"
+      }
+    ],
+    "rules": {
+      "h1": "text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter uppercase",
+      "h2": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "overline": "text-sm tracking-[0.2em] uppercase font-bold text-primary",
+      "countdown_numbers": "text-5xl sm:text-7xl font-black tracking-tighter font-['Unbounded'] tabular-nums",
+      "body": "text-base md:text-lg text-muted-foreground leading-relaxed"
+    }
+  },
+  "media": {
+    "images": {
+      "logo": {
+        "url": "https://customer-assets.emergentagent.com/job_ee42f2e5-9f02-4b6b-8a8e-96c0caeac022/artifacts/ncvnytcd_logo-kdc-vector.png",
+        "alt": "KingdomCraft Logo",
+        "usage": "Header left alignment and optional faded watermark in background"
+      }
+    },
+    "background_effect": "No external image needed. Use a pure CSS technical grid background (`bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]`) combined with a central radial gradient using the `ambient_glow` color to create an epic gaming atmosphere."
+  },
+  "layout_and_spacing": {
+    "container": "max-w-5xl mx-auto px-6 py-12",
+    "grid_system": "Bento Grid style for the countdown. 4 columns on desktop, 2 columns on mobile.",
+    "spacing_scale": "Generous padding. Use p-8 for cards, gap-6 or gap-8 between major sections."
+  },
+  "components_to_build": [
+    {
+      "name": "Header",
+      "type": "Navigation",
+      "design": "Sticky top bar. Crystal Glassmorphism: `backdrop-blur-xl bg-background/60 border-b border-border/40`. Left: Logo (h-10). Right: Flex container with Language Toggle (PL/EN pill) and Theme Toggle (Moon/Sun icon)."
+    },
+    {
+      "name": "Hero Section",
+      "type": "Layout",
+      "design": "Min-h-screen flex flex-col items-center justify-center pt-24 pb-12 text-center space-y-8 relative z-10."
+    },
+    {
+      "name": "CountdownTimer",
+      "type": "Interactive Block",
+      "design": "Grid of 4 Glassmorphism cards. Each card contains the massive number (Unbounded font) and the label below it. Cards have 1px subtle border, soft internal shadow, and scale slightly on hover.",
+      "logic": "Target date: 2026-04-17T20:30:00. Use standard React state + setInterval to update Days, Hours, Minutes, Seconds."
+    },
+    {
+      "name": "SocialLinks",
+      "type": "Action Group",
+      "design": "Flex row of buttons. Buttons should have a solid or glowing outline effect using the primary magenta color. Icons on the left, text on the right."
+    },
+    {
+      "name": "Footer",
+      "type": "Navigation",
+      "design": "Simple footer at the bottom containing the link to the '/rules' subpage, styled as an elegant text link with a subtle hover underline."
+    }
+  ],
+  "dependencies_to_install": [
+    "react-icons",
+    "framer-motion",
+    "lucide-react",
+    "react-router-dom"
+  ],
+  "translations": {
+    "pl": {
+      "status": "STATUS SYSTEMU",
+      "heading": "PRZERWA KONSERWACYJNA",
+      "description": "Serwer KingdomCraft jest obecnie w trakcie przerwy technicznej. Tworzymy dla Was epickie nowości. Wracamy wkrótce!",
+      "days": "DNI",
+      "hours": "GODZINY",
+      "minutes": "MINUTY",
+      "seconds": "SEKUNDY",
+      "social_cta": "Dołącz do społeczności",
+      "rules_link": "Regulamin serwera",
+      "back_home": "Wróć na stronę główną"
+    },
+    "en": {
+      "status": "SYSTEM STATUS",
+      "heading": "SERVER MAINTENANCE",
+      "description": "KingdomCraft is currently undergoing scheduled maintenance. We are building epic new features for you. We will be back soon!",
+      "days": "DAYS",
+      "hours": "HOURS",
+      "minutes": "MINUTES",
+      "seconds": "SECONDS",
+      "social_cta": "Join our community",
+      "rules_link": "Rules & Regulations",
+      "back_home": "Back to Home"
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. Initialize a React Router layout wrapping the entire app to support the '/' (Maintenance) and '/rules' routes.",
+    "2. Add a global state or Context for Language ('pl' | 'en'), defaulting to 'pl' (Polish). Use the translations object provided to render text dynamically.",
+    "3. Add `framer-motion` for smooth staggered entrance animations. Wrap the Hero text, Countdown Timer, and Social Links in `motion.div` with initial opacity-0 and y-10, animating to opacity-100 and y-0.",
+    "4. Install `react-icons` and use `FaDiscord`, `FaTiktok`, `FaYoutube` from `react-icons/fa` for the social media buttons.",
+    "5. For the Countdown Timer, create a robust hook that calculates the difference between `new Date()` and `new Date('2026-04-17T20:30:00')`. Ensure it handles the edge case where the time has passed (show 00:00:00:00).",
+    "6. Apply the CSS Grid Pattern for the background: In your layout wrapper, add a fixed absolute div with `-z-10 w-full h-full` using the background pattern provided in `media.background_effect`. Overlap it with a radial gradient matching `primary` color for an ambient glow behind the countdown.",
+    "7. Ensure Dark Mode is fully configured via Tailwind's `next-themes` (if available) or standard `dark` class toggle.",
+    "8. MANDATORY: Add `data-testid` attributes to all interactive elements, e.g., `data-testid='language-toggle'`, `data-testid='theme-toggle'`, `data-testid='social-discord'`, `data-testid='rules-link'`, `data-testid='countdown-days'`."
+  ]
+}
