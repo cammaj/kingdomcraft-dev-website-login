@@ -1,34 +1,100 @@
-.App-logo {
-    height: 40vmin;
+/* KingdomCraft Maintenance Page Styles */
+
+.ambient-glow {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(217, 70, 239, 0.12) 0%, transparent 70%);
     pointer-events: none;
+    z-index: 0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.dark .ambient-glow {
+    background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(217, 70, 239, 0.15) 0%, transparent 70%);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.logo-glow {
+    filter: drop-shadow(0 0 20px rgba(217, 70, 239, 0.4));
+    transition: filter 0.3s ease;
 }
 
-.App-link {
-    color: #61dafb;
+.logo-glow:hover {
+    filter: drop-shadow(0 0 30px rgba(217, 70, 239, 0.6));
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Countdown card hover effect */
+.countdown-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.countdown-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(217, 70, 239, 0.15);
+}
+
+/* Social button effects */
+.social-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.social-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(217, 70, 239, 0.2) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.social-btn:hover::before {
+    opacity: 1;
+}
+
+.social-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(217, 70, 239, 0.25);
+}
+
+/* Theme toggle animation */
+.theme-toggle {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle:hover {
+    transform: rotate(15deg);
+}
+
+/* Text selection */
+::selection {
+    background: rgba(217, 70, 239, 0.3);
+    color: inherit;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(217, 70, 239, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(217, 70, 239, 0.5);
+}
+
+/* Tabular numbers for countdown */
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
 }
