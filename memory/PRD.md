@@ -1,74 +1,57 @@
 # KingdomCraft - PRD
 
 ## Problem Statement
-Kompleksowy system zarządzania treścią dla serwera Minecraft KingdomCraft z:
-- Page Builder typu WordPress (drag & drop)
-- System kont użytkowników z autentykacją JWT + Google OAuth
-- Panel administracyjny
-- Tryb maintenance
-
-## User Personas
-- Gracze serwera KingdomCraft
-- Administratorzy serwera tworzący treści
-
-## Core Requirements
-- Edytor stron z wizualizacją (WYSIWYG)
-- Elementy: tekst, obrazy, przyciski, kontenery, galerie, video
-- Wielojęzyczne strony (PL/EN/DE/...)
-- Tworzenie/usuwanie podstron
-- Strony specjalne (maintenance, home) - nieusuwalne
+Kompleksowy CMS dla serwera Minecraft KingdomCraft z Page Builderem, systemem użytkowników, profesjonalnym panelem admina i SEO.
 
 ## What's Been Implemented (Kwiecień 2026)
 
-### Faza 1 - Maintenance Page
-- [x] Landing page z licznikiem odliczającym
-- [x] Toggle ciemny/jasny motyw
-- [x] Toggle język PL/EN
-- [x] Przyciski social media
-- [x] Strona regulaminu
+### Panel Administracyjny (uprofesjonalniony)
+- [x] Dashboard ze statystykami (użytkownicy, strony, odsłony, status)
+- [x] Wykres odsłon strony (ostatnie 7 dni) - Recharts
+- [x] Popularne strony z liczbą odsłon
+- [x] Szybkie akcje (strony, użytkownicy, SEO, podgląd)
+- [x] Lista ostatnio zarejestrowanych użytkowników
+- [x] Switch Maintenance mode w nagłówku dashboardu
+- [x] Usunięto News Management
+- [x] Uproszczono Settings (tylko maintenance toggle)
 
-### Faza 2 - System użytkowników
-- [x] Logowanie JWT + Google OAuth
-- [x] Rejestracja użytkowników
-- [x] Strona profilu z uploadem avatara
-- [x] Admin Panel (ustawienia, użytkownicy, newsy)
-- [x] Maintenance mode blokuje login dla nie-adminów
+### Zarządzanie Użytkownikami (/admin/users)
+- [x] Lista użytkowników z awatarami
+- [x] Wyszukiwarka użytkowników
+- [x] Dodawanie/edycja/usuwanie użytkowników
+- [x] Odznaki ról (admin/user)
 
-### Faza 3 - Page Builder
-- [x] Zarządzanie stronami (/admin/pages)
-- [x] Strony specjalne: maintenance, home (nieusuwalne)
-- [x] Tworzenie/usuwanie podstron
-- [x] Page Editor z drag & drop (@dnd-kit)
-- [x] Elementy: Nagłówek, Tekst, Obraz, Przycisk, Kontener, Galeria, Video, Odstęp
-- [x] Panel właściwości bloku (tekst, styl, rozmiar, wyrównanie)
-- [x] Wielojęzyczne wersje stron (PL, EN, DE, FR...)
-- [x] Przełącznik języków na podstronach
-- [x] Automatyczne menu nawigacyjne z podstron
-- [x] Upload obrazów dla stron
-- [x] Podgląd strony
+### SEO (/admin/seo)
+- [x] Automatyczny sitemap.xml (/api/seo/sitemap.xml)
+- [x] Automatyczny robots.txt (/api/seo/robots.txt)
+- [x] Wskazówki SEO (tytuły, meta opisy, linkowanie, słowa kluczowe)
+- [x] Status stron z językami
+- [x] Instrukcje Google Search Console
+- [x] Meta tagi Open Graph i Twitter Cards
+
+### Śledzenie Analityki
+- [x] Automatyczne śledzenie page views
+- [x] Agregacja dziennych statystyk
+- [x] Top strony według odsłon
+
+### Page Builder
+- [x] Drag & drop edytor stron
+- [x] Elementy: tekst, obrazy, przyciski, kontenery, galerie, video
+- [x] Wielojęzyczne strony
+- [x] Strony specjalne (maintenance, home)
 
 ## Credentials
 - Admin: admin@kingdomcraft.pl / Admin123!
 
-## Architecture
-- Frontend: React + Tailwind + Shadcn/UI + Framer Motion + @dnd-kit
-- Backend: FastAPI + MongoDB
-- Auth: JWT cookies + Emergent Google OAuth
-
 ## Prioritized Backlog
-### P0 - Critical
-- Brak (MVP complete)
-
 ### P1 - High Priority
-- Drag & drop sortowanie bloków (częściowo zaimplementowane)
-- Galeria z wieloma obrazami
+- Prawdziwe linki do social media
 
-### P2 - Medium Priority
-- Formularze kontaktowe
-- SEO meta tags dla stron
-- Wersjonowanie zmian stron
+### P2 - Medium Priority  
+- Eksport/import stron
+- Integracja Google Analytics
+- Powiadomienia email
 
 ## Next Tasks
-1. Uzupełnij prawdziwe linki do social media
-2. Dodaj więcej stylizacji bloków (tło, obramowanie)
-3. Rozważ integrację z Google Analytics
+1. Uzupełnij linki do Discord, TikTok, YouTube
+2. Rozważ integrację z Google Analytics
