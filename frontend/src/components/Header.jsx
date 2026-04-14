@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Moon, Sun, Languages, User, LogOut, Shield } from 'lucide-react';
+import { Moon, Sun, Languages, User, LogOut, Shield, Menu, X } from 'lucide-react';
+import axios from 'axios';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,18 +15,46 @@ import {
     DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_ee42f2e5-9f02-4b6b-8a8e-96c0caeac022/artifacts/ncvnytcd_logo-kdc-vector.png";
 
 export const Header = () => {
     const { theme, toggleTheme } = useTheme();
-    const { language, toggleLanguage, t } = useLanguage();
+    const { language, toggleLanguage, t, siteSettings } = useLanguage();
     const { user, isAuthenticated, isAdmin, logout } = useAuth();
     const navigate = useNavigate();
+    
+    const [menuPages, setMenuPages] = useState([]);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    useEffect(() => {
+        fetchMenuPages();
+    }, []);
+
+    const fetchMenuPages = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/api/pages/menu`);
+            setMenuPages(response.data);
+        } catch (error) {
+            console.error('Failed to fetch menu pages:', error);
+        }
+    };
 
     const handleLogout = async () => {
         await logout();
         navigate('/');
     };
+
+    const getPageTitle = (page) => {
+        if (page.languages?.[language]?.title) {
+            return page.languages[language].title;
+        }
+        const firstLang = Object.keys(page.languages || {})[0];
+        return page.languages?.[firstLang]?.title || page.slug;
+    };
+
+    // Don't show menu in maintenance mode for non-admins
+    const showNavigation = !siteSettings?.maintenance_mode || isAdmin;
 
     return (
         <motion.header 
@@ -54,8 +83,35 @@ export const Header = () => {
                     </Link>
                 </motion.div>
 
+                {/* Navigation - Desktop */}
+                {showNavigation && menuPages.length > 0 && (
+                    <nav className="hidden md:flex items-center gap-1">
+                        {menuPages.map(page => (
+                            <Link
+                                key={page.id}
+                                to={`/strona/${page.slug}`}
+                                className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                            >
+                                {getPageTitle(page)}
+                            </Link>
+                        ))}
+                    </nav>
+                )}
+
                 {/* Controls */}
                 <div className="flex items-center gap-2 sm:gap-3">
+                    {/* Mobile Menu Button */}
+                    {showNavigation && menuPages.length > 0 && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="md:hidden"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        >
+                            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </Button>
+                    )}
+
                     {/* Language Toggle */}
                     <Button
                         variant="outline"
@@ -95,7 +151,7 @@ export const Header = () => {
                                 >
                                     {user?.profile_picture ? (
                                         <img 
-                                            src={user.profile_picture.startsWith('http') ? user.profile_picture : `${process.env.REACT_APP_BACKEND_URL}${user.profile_picture}`} 
+                                            src={user.profile_picture.startsWith('http') ? user.profile_picture : `${API_URL}${user.profile_picture}`} 
                                             alt="Avatar" 
                                             className="h-6 w-6 rounded-full object-cover"
                                         />
@@ -139,6 +195,28 @@ export const Header = () => {
                     )}
                 </div>
             </div>
+
+            {/* Mobile Navigation */}
+            {showNavigation && mobileMenuOpen && menuPages.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur-xl"
+                >
+                    <nav className="px-4 py-3 space-y-1">
+                        {menuPages.map(page => (
+                            <Link
+                                key={page.id}
+                                to={`/strona/${page.slug}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                            >
+                                {getPageTitle(page)}
+                            </Link>
+                        ))}
+                    </nav>
+                </motion.div>
+            )}
         </motion.header>
     );
 };

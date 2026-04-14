@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
     Users, Settings, Newspaper, Power, Calendar, 
-    Edit2, Trash2, Plus, Save, X, Loader2, Shield
+    Edit2, Trash2, Plus, Save, X, Loader2, Shield, FileText
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -17,6 +18,7 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 export const AdminPage = () => {
     const { t, language, fetchSettings } = useLanguage();
     const { user } = useAuth();
+    const navigate = useNavigate();
     
     const [activeTab, setActiveTab] = useState('settings');
     const [users, setUsers] = useState([]);
@@ -26,12 +28,10 @@ export const AdminPage = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     
-    // Modal states
     const [showUserModal, setShowUserModal] = useState(false);
     const [showNewsModal, setShowNewsModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     
-    // Form states
     const [userForm, setUserForm] = useState({ email: '', password: '', username: '', role: 'user' });
     const [newsForm, setNewsForm] = useState({ title_pl: '', title_en: '', content_pl: '', content_en: '' });
 
@@ -170,6 +170,7 @@ export const AdminPage = () => {
 
     const tabs = [
         { id: 'settings', label: t('settings'), icon: Settings },
+        { id: 'pages', label: 'Strony', icon: FileText },
         { id: 'users', label: t('users'), icon: Users },
         { id: 'news', label: t('news_management'), icon: Newspaper },
     ];
@@ -194,7 +195,6 @@ export const AdminPage = () => {
                         </h1>
                     </motion.div>
 
-                    {/* Alerts */}
                     {error && (
                         <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
                             {error}
@@ -206,13 +206,18 @@ export const AdminPage = () => {
                         </div>
                     )}
 
-                    {/* Tabs */}
                     <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
                         {tabs.map((tab) => (
                             <Button
                                 key={tab.id}
                                 variant={activeTab === tab.id ? 'default' : 'outline'}
-                                onClick={() => setActiveTab(tab.id)}
+                                onClick={() => {
+                                    if (tab.id === 'pages') {
+                                        navigate('/admin/pages');
+                                    } else {
+                                        setActiveTab(tab.id);
+                                    }
+                                }}
                                 className="flex items-center gap-2"
                                 data-testid={`tab-${tab.id}`}
                             >
@@ -230,7 +235,6 @@ export const AdminPage = () => {
                             className="glass-card rounded-2xl p-6 sm:p-8"
                         >
                             <div className="space-y-6">
-                                {/* Maintenance Mode Toggle */}
                                 <div className="flex items-center justify-between p-4 rounded-xl bg-background/50">
                                     <div className="flex items-center gap-3">
                                         <Power className={`h-5 w-5 ${settings.maintenance_mode ? 'text-yellow-500' : 'text-green-500'}`} />
@@ -248,7 +252,6 @@ export const AdminPage = () => {
                                     />
                                 </div>
 
-                                {/* Countdown Date */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium flex items-center gap-2">
                                         <Calendar className="h-4 w-4" />
@@ -263,47 +266,39 @@ export const AdminPage = () => {
                                     />
                                 </div>
 
-                                {/* Maintenance Text PL */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">{t('maintenance_text')} (PL)</label>
                                     <Input
                                         value={settings.maintenance_text_pl || ''}
                                         onChange={(e) => setSettings({ ...settings, maintenance_text_pl: e.target.value })}
                                         className="bg-background/50"
-                                        data-testid="maintenance-text-pl"
                                     />
                                 </div>
 
-                                {/* Maintenance Text EN */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">{t('maintenance_text')} (EN)</label>
                                     <Input
                                         value={settings.maintenance_text_en || ''}
                                         onChange={(e) => setSettings({ ...settings, maintenance_text_en: e.target.value })}
                                         className="bg-background/50"
-                                        data-testid="maintenance-text-en"
                                     />
                                 </div>
 
-                                {/* Maintenance Desc PL */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">{t('maintenance_desc')} (PL)</label>
                                     <textarea
                                         value={settings.maintenance_description_pl || ''}
                                         onChange={(e) => setSettings({ ...settings, maintenance_description_pl: e.target.value })}
                                         className="w-full p-3 rounded-md bg-background/50 border border-input min-h-[100px] resize-none"
-                                        data-testid="maintenance-desc-pl"
                                     />
                                 </div>
 
-                                {/* Maintenance Desc EN */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">{t('maintenance_desc')} (EN)</label>
                                     <textarea
                                         value={settings.maintenance_description_en || ''}
                                         onChange={(e) => setSettings({ ...settings, maintenance_description_en: e.target.value })}
                                         className="w-full p-3 rounded-md bg-background/50 border border-input min-h-[100px] resize-none"
-                                        data-testid="maintenance-desc-en"
                                     />
                                 </div>
 
@@ -347,7 +342,7 @@ export const AdminPage = () => {
                                     </thead>
                                     <tbody>
                                         {users.map((u) => (
-                                            <tr key={u.id} className="border-b border-border/50" data-testid={`user-row-${u.id}`}>
+                                            <tr key={u.id} className="border-b border-border/50">
                                                 <td className="p-3">{u.username}</td>
                                                 <td className="p-3 text-muted-foreground">{u.email}</td>
                                                 <td className="p-3">
@@ -357,11 +352,11 @@ export const AdminPage = () => {
                                                 </td>
                                                 <td className="p-3">
                                                     <div className="flex gap-2">
-                                                        <Button size="sm" variant="ghost" onClick={() => openEditUser(u)} data-testid={`edit-user-${u.id}`}>
+                                                        <Button size="sm" variant="ghost" onClick={() => openEditUser(u)}>
                                                             <Edit2 className="h-4 w-4" />
                                                         </Button>
                                                         {u.id !== user?.id && (
-                                                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteUser(u.id)} data-testid={`delete-user-${u.id}`}>
+                                                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteUser(u.id)}>
                                                                 <Trash2 className="h-4 w-4" />
                                                             </Button>
                                                         )}
@@ -392,13 +387,13 @@ export const AdminPage = () => {
 
                             <div className="space-y-4">
                                 {news.map((item) => (
-                                    <div key={item.id} className="p-4 rounded-xl bg-background/50 flex justify-between items-start" data-testid={`news-row-${item.id}`}>
+                                    <div key={item.id} className="p-4 rounded-xl bg-background/50 flex justify-between items-start">
                                         <div>
                                             <h3 className="font-medium">{language === 'pl' ? item.title_pl : item.title_en}</h3>
                                             <p className="text-sm text-muted-foreground mt-1">{language === 'pl' ? item.content_pl : item.content_en}</p>
                                             <p className="text-xs text-muted-foreground/60 mt-2">{item.author_name} • {new Date(item.created_at).toLocaleDateString()}</p>
                                         </div>
-                                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteNews(item.id)} data-testid={`delete-news-${item.id}`}>
+                                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteNews(item.id)}>
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </div>
@@ -430,7 +425,6 @@ export const AdminPage = () => {
                                         value={userForm.username}
                                         onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
                                         required
-                                        data-testid="user-form-username"
                                     />
                                     <Input
                                         type="email"
@@ -438,7 +432,6 @@ export const AdminPage = () => {
                                         value={userForm.email}
                                         onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
                                         required
-                                        data-testid="user-form-email"
                                     />
                                     {!editingUser && (
                                         <Input
@@ -447,14 +440,12 @@ export const AdminPage = () => {
                                             value={userForm.password}
                                             onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
                                             required
-                                            data-testid="user-form-password"
                                         />
                                     )}
                                     <select
                                         value={userForm.role}
                                         onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
                                         className="w-full p-2 rounded-md bg-background border border-input"
-                                        data-testid="user-form-role"
                                     >
                                         <option value="user">User</option>
                                         <option value="admin">Admin</option>
@@ -463,7 +454,7 @@ export const AdminPage = () => {
                                         <Button type="button" variant="outline" onClick={() => setShowUserModal(false)}>
                                             {t('cancel')}
                                         </Button>
-                                        <Button type="submit" disabled={loading} data-testid="user-form-submit">
+                                        <Button type="submit" disabled={loading}>
                                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('save')}
                                         </Button>
                                     </div>
@@ -492,14 +483,12 @@ export const AdminPage = () => {
                                         value={newsForm.title_pl}
                                         onChange={(e) => setNewsForm({ ...newsForm, title_pl: e.target.value })}
                                         required
-                                        data-testid="news-form-title-pl"
                                     />
                                     <Input
                                         placeholder={`${t('title')} (EN)`}
                                         value={newsForm.title_en}
                                         onChange={(e) => setNewsForm({ ...newsForm, title_en: e.target.value })}
                                         required
-                                        data-testid="news-form-title-en"
                                     />
                                     <textarea
                                         placeholder={`${t('content')} (PL)`}
@@ -507,7 +496,6 @@ export const AdminPage = () => {
                                         onChange={(e) => setNewsForm({ ...newsForm, content_pl: e.target.value })}
                                         className="w-full p-3 rounded-md bg-background border border-input min-h-[100px] resize-none"
                                         required
-                                        data-testid="news-form-content-pl"
                                     />
                                     <textarea
                                         placeholder={`${t('content')} (EN)`}
@@ -515,13 +503,12 @@ export const AdminPage = () => {
                                         onChange={(e) => setNewsForm({ ...newsForm, content_en: e.target.value })}
                                         className="w-full p-3 rounded-md bg-background border border-input min-h-[100px] resize-none"
                                         required
-                                        data-testid="news-form-content-en"
                                     />
                                     <div className="flex gap-2 justify-end">
                                         <Button type="button" variant="outline" onClick={() => setShowNewsModal(false)}>
                                             {t('cancel')}
                                         </Button>
-                                        <Button type="submit" disabled={loading} data-testid="news-form-submit">
+                                        <Button type="submit" disabled={loading}>
                                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('save')}
                                         </Button>
                                     </div>

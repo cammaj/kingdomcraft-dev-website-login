@@ -1,0 +1,78 @@
+{
+  "timestamp": "2026-04-14T09:38:10.860393",
+  "total_tests": 14,
+  "passed_tests": 14,
+  "success_rate": "100.0%",
+  "results": [
+    {
+      "test": "Admin Login",
+      "success": true,
+      "details": "Admin role verified: admin"
+    },
+    {
+      "test": "Get All Pages",
+      "success": true,
+      "details": "Found 2 total pages (2 special, 0 regular)"
+    },
+    {
+      "test": "Maintenance Page Exists",
+      "success": true,
+      "details": "Found: page_maintenance"
+    },
+    {
+      "test": "Home Page Exists",
+      "success": true,
+      "details": "Found: page_home"
+    },
+    {
+      "test": "Get Maintenance Page by ID",
+      "success": true,
+      "details": "Retrieved Maintenance Page: maintenance"
+    },
+    {
+      "test": "Get Maintenance Page by Slug",
+      "success": true,
+      "details": "Retrieved Maintenance Page: page_maintenance"
+    },
+    {
+      "test": "Delete Special Page Protection",
+      "success": true,
+      "details": "Special page deletion correctly blocked"
+    },
+    {
+      "test": "Get Home Page by ID",
+      "success": true,
+      "details": "Retrieved Home Page: home"
+    },
+    {
+      "test": "Get Home Page by Slug",
+      "success": true,
+      "details": "Retrieved Home Page: page_home"
+    },
+    {
+      "test": "Get Menu Pages",
+      "success": true,
+      "details": "Found 0 menu pages"
+    },
+    {
+      "test": "Create New Page",
+      "success": true,
+      "details": "Created page: page_7bdff48289ba (test-page-093810)"
+    },
+    {
+      "test": "Update Page",
+      "success": true,
+      "details": "Updated page: page_7bdff48289ba"
+    },
+    {
+      "test": "Delete Regular Page",
+      "success": true,
+      "details": "Page page_7bdff48289ba deleted successfully"
+    },
+    {
+      "test": "Maintenance Mode - Registration Blocked",
+      "success": true,
+      "details": "Registration correctly blocked during maintenance: 403"
+    }
+  ]
+}
