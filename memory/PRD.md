@@ -1,60 +1,74 @@
 # KingdomCraft - PRD
 
 ## Problem Statement
-Rozbudowa landing page KingdomCraft o:
-- Admin panel (edycja kont, switch maintenance/running, edycja tekstów maintenance)
-- System kont użytkowników (email, hasło, username, zdjęcie profilowe)
-- Strona główna (gdy serwer działa)
-- Strona profilu użytkownika
+Kompleksowy system zarządzania treścią dla serwera Minecraft KingdomCraft z:
+- Page Builder typu WordPress (drag & drop)
+- System kont użytkowników z autentykacją JWT + Google OAuth
+- Panel administracyjny
+- Tryb maintenance
 
 ## User Personas
 - Gracze serwera KingdomCraft
-- Administratorzy serwera
+- Administratorzy serwera tworzący treści
 
 ## Core Requirements
-- Autentykacja: JWT + Google OAuth
-- Rejestracja: użytkownicy mogą się sami rejestrować + admin może tworzyć konta
-- Admin panel z zarządzaniem użytkownikami, ustawieniami, aktualnościami
+- Edytor stron z wizualizacją (WYSIWYG)
+- Elementy: tekst, obrazy, przyciski, kontenery, galerie, video
+- Wielojęzyczne strony (PL/EN/DE/...)
+- Tworzenie/usuwanie podstron
+- Strony specjalne (maintenance, home) - nieusuwalne
 
 ## What's Been Implemented (Kwiecień 2026)
 
 ### Faza 1 - Maintenance Page
-- [x] Landing page z informacją o przerwie konserwacyjnej
-- [x] Licznik odliczający (dynamiczna data z settings)
+- [x] Landing page z licznikiem odliczającym
 - [x] Toggle ciemny/jasny motyw
 - [x] Toggle język PL/EN
-- [x] Przyciski social media (Discord, TikTok, YouTube)
+- [x] Przyciski social media
 - [x] Strona regulaminu
 
-### Faza 2 - System użytkowników i Admin Panel
-- [x] Logowanie JWT (email/hasło)
-- [x] Logowanie Google OAuth (Emergent Auth)
+### Faza 2 - System użytkowników
+- [x] Logowanie JWT + Google OAuth
 - [x] Rejestracja użytkowników
-- [x] Strona profilu (edycja username, email)
-- [x] Upload zdjęcia profilowego
-- [x] Admin Panel - zakładka Ustawienia (maintenance mode, countdown date, teksty PL/EN)
-- [x] Admin Panel - zakładka Użytkownicy (lista, dodawanie, edycja, usuwanie)
-- [x] Admin Panel - zakładka Aktualności (dodawanie, usuwanie)
-- [x] Strona główna (gdy serwer online) z newsami
-- [x] Menu użytkownika w headerze (dropdown)
-- [x] Maintenance mode: niezalogowani widzą maintenance, admin widzi pełną stronę
+- [x] Strona profilu z uploadem avatara
+- [x] Admin Panel (ustawienia, użytkownicy, newsy)
+- [x] Maintenance mode blokuje login dla nie-adminów
+
+### Faza 3 - Page Builder
+- [x] Zarządzanie stronami (/admin/pages)
+- [x] Strony specjalne: maintenance, home (nieusuwalne)
+- [x] Tworzenie/usuwanie podstron
+- [x] Page Editor z drag & drop (@dnd-kit)
+- [x] Elementy: Nagłówek, Tekst, Obraz, Przycisk, Kontener, Galeria, Video, Odstęp
+- [x] Panel właściwości bloku (tekst, styl, rozmiar, wyrównanie)
+- [x] Wielojęzyczne wersje stron (PL, EN, DE, FR...)
+- [x] Przełącznik języków na podstronach
+- [x] Automatyczne menu nawigacyjne z podstron
+- [x] Upload obrazów dla stron
+- [x] Podgląd strony
 
 ## Credentials
 - Admin: admin@kingdomcraft.pl / Admin123!
+
+## Architecture
+- Frontend: React + Tailwind + Shadcn/UI + Framer Motion + @dnd-kit
+- Backend: FastAPI + MongoDB
+- Auth: JWT cookies + Emergent Google OAuth
 
 ## Prioritized Backlog
 ### P0 - Critical
 - Brak (MVP complete)
 
 ### P1 - High Priority
-- Dodać prawdziwe linki do social media
+- Drag & drop sortowanie bloków (częściowo zaimplementowane)
+- Galeria z wieloma obrazami
 
 ### P2 - Medium Priority
-- Password reset functionality
-- Email notifications
-- User avatar upload optimization
+- Formularze kontaktowe
+- SEO meta tags dla stron
+- Wersjonowanie zmian stron
 
 ## Next Tasks
-1. Uzupełnić linki do Discord, TikTok, YouTube
-2. Dodać funkcję resetowania hasła
-3. Rozważyć statystyki serwera na stronie głównej
+1. Uzupełnij prawdziwe linki do social media
+2. Dodaj więcej stylizacji bloków (tło, obramowanie)
+3. Rozważ integrację z Google Analytics
