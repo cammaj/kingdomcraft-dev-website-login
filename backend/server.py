@@ -542,7 +542,17 @@ async def create_news(data: NewsCreate, request: Request):
     }
     await db.news.insert_one(news_doc)
     
-    return news_doc
+    # Return without _id
+    return {
+        "id": news_id,
+        "title_pl": data.title_pl,
+        "title_en": data.title_en,
+        "content_pl": data.content_pl,
+        "content_en": data.content_en,
+        "author_id": admin["id"],
+        "author_name": admin["username"],
+        "created_at": news_doc["created_at"]
+    }
 
 @api_router.delete("/admin/news/{news_id}")
 async def delete_news(news_id: str, request: Request):

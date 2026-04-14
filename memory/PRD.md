@@ -1,44 +1,60 @@
-# KingdomCraft Maintenance Page - PRD
+# KingdomCraft - PRD
 
 ## Problem Statement
-Responsywny landing page informujący o przerwie konserwacyjnej serwera Minecraft KingdomCraft z przełącznikami motywu i języka.
+Rozbudowa landing page KingdomCraft o:
+- Admin panel (edycja kont, switch maintenance/running, edycja tekstów maintenance)
+- System kont użytkowników (email, hasło, username, zdjęcie profilowe)
+- Strona główna (gdy serwer działa)
+- Strona profilu użytkownika
 
 ## User Personas
-- Gracze serwera KingdomCraft szukający informacji o dostępności
-- Potencjalni nowi gracze odwiedzający stronę
+- Gracze serwera KingdomCraft
+- Administratorzy serwera
 
 ## Core Requirements
-- Landing page z informacją o przerwie konserwacyjnej
-- Licznik odliczający do 17.04.2026 20:30
-- Przełącznik motywu ciemny/jasny
-- Przełącznik języka PL/EN
-- Przyciski social media (Discord, TikTok, YouTube)
-- Podstrona z regulaminem serwera
+- Autentykacja: JWT + Google OAuth
+- Rejestracja: użytkownicy mogą się sami rejestrować + admin może tworzyć konta
+- Admin panel z zarządzaniem użytkownikami, ustawieniami, aktualnościami
 
-## What's Been Implemented (Grudzień 2025)
-- [x] Strona główna z informacją o konserwacji
-- [x] Licznik odliczający w czasie rzeczywistym
-- [x] Toggle ciemny/jasny motyw (localStorage persistence)
-- [x] Toggle język PL/EN (localStorage persistence)
-- [x] Przyciski social media z placeholderami (#)
-- [x] Strona regulaminu z 6 zasadami
-- [x] Pełna responsywność (mobile/tablet/desktop)
-- [x] Animacje (framer-motion)
-- [x] Kolorystyka zgodna z logo (magenta/fiolet)
-- [x] Fonty: Unbounded (nagłówki), Outfit (body)
+## What's Been Implemented (Kwiecień 2026)
+
+### Faza 1 - Maintenance Page
+- [x] Landing page z informacją o przerwie konserwacyjnej
+- [x] Licznik odliczający (dynamiczna data z settings)
+- [x] Toggle ciemny/jasny motyw
+- [x] Toggle język PL/EN
+- [x] Przyciski social media (Discord, TikTok, YouTube)
+- [x] Strona regulaminu
+
+### Faza 2 - System użytkowników i Admin Panel
+- [x] Logowanie JWT (email/hasło)
+- [x] Logowanie Google OAuth (Emergent Auth)
+- [x] Rejestracja użytkowników
+- [x] Strona profilu (edycja username, email)
+- [x] Upload zdjęcia profilowego
+- [x] Admin Panel - zakładka Ustawienia (maintenance mode, countdown date, teksty PL/EN)
+- [x] Admin Panel - zakładka Użytkownicy (lista, dodawanie, edycja, usuwanie)
+- [x] Admin Panel - zakładka Aktualności (dodawanie, usuwanie)
+- [x] Strona główna (gdy serwer online) z newsami
+- [x] Menu użytkownika w headerze (dropdown)
+- [x] Maintenance mode: niezalogowani widzą maintenance, admin widzi pełną stronę
+
+## Credentials
+- Admin: admin@kingdomcraft.pl / Admin123!
 
 ## Prioritized Backlog
 ### P0 - Critical
 - Brak (MVP complete)
 
 ### P1 - High Priority
-- Dodać prawdziwe linki do social media (Discord, TikTok, YouTube)
+- Dodać prawdziwe linki do social media
 
-### P2 - Medium Priority  
-- Formularz subskrypcji powiadomień email
-- Integracja z Discord webhook (powiadomienie o powrocie serwera)
+### P2 - Medium Priority
+- Password reset functionality
+- Email notifications
+- User avatar upload optimization
 
 ## Next Tasks
-1. Uzupełnić linki do social media od klienta
-2. Rozważyć dodanie animowanego tła
-3. Opcjonalnie: formularz kontaktowy
+1. Uzupełnić linki do Discord, TikTok, YouTube
+2. Dodać funkcję resetowania hasła
+3. Rozważyć statystyki serwera na stronie głównej
