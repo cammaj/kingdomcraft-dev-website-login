@@ -1,0 +1,78 @@
+{
+  "timestamp": "2026-04-14T00:15:47.648264",
+  "total_tests": 14,
+  "passed_tests": 13,
+  "success_rate": "92.9%",
+  "results": [
+    {
+      "test": "API Health Check",
+      "success": true,
+      "details": "Status: 200, Response: {'message': 'KingdomCraft API'}"
+    },
+    {
+      "test": "Admin Login",
+      "success": true,
+      "details": "Admin role verified: admin"
+    },
+    {
+      "test": "Auth Me Endpoint",
+      "success": true,
+      "details": "Current user: Admin (admin)"
+    },
+    {
+      "test": "User Registration",
+      "success": true,
+      "details": "User created: testuser_001546"
+    },
+    {
+      "test": "User Login",
+      "success": true,
+      "details": "User logged in: testuser_001546"
+    },
+    {
+      "test": "Admin Users List",
+      "success": true,
+      "details": "Found 2 users"
+    },
+    {
+      "test": "Admin Create User",
+      "success": true,
+      "details": "Admin created user: adminuser_001547"
+    },
+    {
+      "test": "Admin Update User",
+      "success": true,
+      "details": "Updated user: updated_user_001547"
+    },
+    {
+      "test": "Get Settings",
+      "success": true,
+      "details": "Maintenance mode: True"
+    },
+    {
+      "test": "Update Settings",
+      "success": true,
+      "details": "Settings updated, maintenance mode: False"
+    },
+    {
+      "test": "Get News",
+      "success": true,
+      "details": "Found 0 news items"
+    },
+    {
+      "test": "Create News",
+      "success": false,
+      "details": "Status: 500, Response: Internal Server Error"
+    },
+    {
+      "test": "Profile Update",
+      "success": true,
+      "details": "Profile updated: updated_admin_001547"
+    },
+    {
+      "test": "Logout",
+      "success": true,
+      "details": "Status: 200"
+    }
+  ]
+}

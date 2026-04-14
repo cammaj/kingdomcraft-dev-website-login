@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
 
-const TARGET_DATE = new Date('2026-04-17T20:30:00');
-
-const calculateTimeLeft = () => {
+const calculateTimeLeft = (targetDate) => {
     const now = new Date();
-    const difference = TARGET_DATE - now;
+    const target = new Date(targetDate);
+    const difference = target - now;
 
     if (difference <= 0) {
         return { days: 0, hours: 0, minutes: 0, seconds: 0, isComplete: true };
@@ -51,16 +50,17 @@ const TimeCard = ({ value, label, index }) => {
 };
 
 export const CountdownTimer = () => {
-    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft);
-    const { t } = useLanguage();
+    const { t, siteSettings } = useLanguage();
+    const targetDate = siteSettings?.countdown_date || '2026-04-17T20:30:00';
+    const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(targetDate));
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setTimeLeft(calculateTimeLeft());
+            setTimeLeft(calculateTimeLeft(targetDate));
         }, 1000);
 
         return () => clearInterval(timer);
-    }, []);
+    }, [targetDate]);
 
     if (timeLeft.isComplete) {
         return (
