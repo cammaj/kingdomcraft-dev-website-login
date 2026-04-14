@@ -1,6 +1,7 @@
 import React from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -13,8 +14,11 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { AdminPage } from "./pages/AdminPage";
 import { PagesManagerPage } from "./pages/PagesManagerPage";
 import { PageEditorPage } from "./pages/PageEditorPage";
+import { UsersManagerPage } from "./pages/UsersManagerPage";
+import { SEOPage } from "./pages/SEOPage";
 import { DynamicPage } from "./pages/DynamicPage";
 import { AuthCallback } from "./components/AuthCallback";
+import { SEOHead } from "./components/SEOHead";
 import { Loader2 } from "lucide-react";
 
 // Protected route wrapper
@@ -65,81 +69,99 @@ const MainRouter = () => {
     const isMaintenanceMode = siteSettings?.maintenance_mode;
 
     return (
-        <Routes>
-            {/* Auth routes - always accessible for admins */}
-            <Route path="/login" element={
-                isMaintenanceMode && !isAdmin ? <LoginPage /> : <LoginPage />
-            } />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            
-            {/* Rules always accessible */}
-            <Route path="/rules" element={<RulesPage />} />
+        <>
+            <SEOHead />
+            <Routes>
+                {/* Auth routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                
+                {/* Rules always accessible */}
+                <Route path="/rules" element={<RulesPage />} />
 
-            {/* Conditional routes based on maintenance mode */}
-            {isMaintenanceMode && !isAdmin ? (
-                // Maintenance mode for non-admins - block registration and most pages
-                <>
-                    <Route path="/register" element={<MaintenancePage />} />
-                    <Route path="*" element={<MaintenancePage />} />
-                </>
-            ) : (
-                // Normal mode or admin access
-                <>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route 
-                        path="/profile" 
-                        element={
-                            <ProtectedRoute>
-                                <ProfilePage />
-                            </ProtectedRoute>
-                        } 
-                    />
-                    <Route 
-                        path="/admin" 
-                        element={
-                            <ProtectedRoute adminOnly>
-                                <AdminPage />
-                            </ProtectedRoute>
-                        } 
-                    />
-                    <Route 
-                        path="/admin/pages" 
-                        element={
-                            <ProtectedRoute adminOnly>
-                                <PagesManagerPage />
-                            </ProtectedRoute>
-                        } 
-                    />
-                    <Route 
-                        path="/admin/pages/:pageId" 
-                        element={
-                            <ProtectedRoute adminOnly>
-                                <PageEditorPage />
-                            </ProtectedRoute>
-                        } 
-                    />
-                    {/* Dynamic pages */}
-                    <Route path="/strona/:slug" element={<DynamicPage />} />
-                    <Route path="/preview/:slug/:lang" element={<DynamicPage />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </>
-            )}
-        </Routes>
+                {/* Conditional routes based on maintenance mode */}
+                {isMaintenanceMode && !isAdmin ? (
+                    <>
+                        <Route path="/register" element={<MaintenancePage />} />
+                        <Route path="*" element={<MaintenancePage />} />
+                    </>
+                ) : (
+                    <>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route 
+                            path="/profile" 
+                            element={
+                                <ProtectedRoute>
+                                    <ProfilePage />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        {/* Admin Routes */}
+                        <Route 
+                            path="/admin" 
+                            element={
+                                <ProtectedRoute adminOnly>
+                                    <AdminPage />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/admin/pages" 
+                            element={
+                                <ProtectedRoute adminOnly>
+                                    <PagesManagerPage />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/admin/pages/:pageId" 
+                            element={
+                                <ProtectedRoute adminOnly>
+                                    <PageEditorPage />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/admin/users" 
+                            element={
+                                <ProtectedRoute adminOnly>
+                                    <UsersManagerPage />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/admin/seo" 
+                            element={
+                                <ProtectedRoute adminOnly>
+                                    <SEOPage />
+                                </ProtectedRoute>
+                            } 
+                        />
+                        {/* Dynamic pages */}
+                        <Route path="/strona/:slug" element={<DynamicPage />} />
+                        <Route path="/preview/:slug/:lang" element={<DynamicPage />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </>
+                )}
+            </Routes>
+        </>
     );
 };
 
 function App() {
     return (
-        <ThemeProvider>
-            <AuthProvider>
-                <LanguageProvider>
-                    <BrowserRouter>
-                        <MainRouter />
-                    </BrowserRouter>
-                </LanguageProvider>
-            </AuthProvider>
-        </ThemeProvider>
+        <HelmetProvider>
+            <ThemeProvider>
+                <AuthProvider>
+                    <LanguageProvider>
+                        <BrowserRouter>
+                            <MainRouter />
+                        </BrowserRouter>
+                    </LanguageProvider>
+                </AuthProvider>
+            </ThemeProvider>
+        </HelmetProvider>
     );
 }
 

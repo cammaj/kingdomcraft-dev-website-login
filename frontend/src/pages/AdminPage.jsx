@@ -3,177 +3,122 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-    Users, Settings, Newspaper, Power, Calendar, 
-    Edit2, Trash2, Plus, Save, X, Loader2, Shield, FileText
+    Users, Settings, Power, Shield, FileText, BarChart3,
+    TrendingUp, Eye, Clock, UserPlus, Loader2
 } from 'lucide-react';
+import {
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+    BarChart, Bar
+} from 'recharts';
 import { Header } from '../components/Header';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 import { Switch } from '../components/ui/switch';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
+// Stat Card Component
+const StatCard = ({ icon: Icon, label, value, subValue, color = "primary", trend }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card rounded-xl p-5"
+    >
+        <div className="flex items-start justify-between">
+            <div>
+                <p className="text-sm text-muted-foreground mb-1">{label}</p>
+                <p className="text-3xl font-display font-bold">{value}</p>
+                {subValue && (
+                    <p className="text-xs text-muted-foreground mt-1">{subValue}</p>
+                )}
+            </div>
+            <div className={`p-3 rounded-xl bg-${color}/10`}>
+                <Icon className={`h-6 w-6 text-${color}`} />
+            </div>
+        </div>
+        {trend && (
+            <div className="flex items-center gap-1 mt-3 text-sm text-green-500">
+                <TrendingUp className="h-4 w-4" />
+                <span>{trend}</span>
+            </div>
+        )}
+    </motion.div>
+);
+
+// Quick Action Card
+const QuickActionCard = ({ icon: Icon, title, description, onClick, color = "primary" }) => (
+    <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onClick}
+        className="glass-card rounded-xl p-5 text-left w-full hover:border-primary/50 transition-colors"
+    >
+        <div className={`inline-flex p-3 rounded-xl bg-${color}/10 mb-3`}>
+            <Icon className={`h-5 w-5 text-${color}`} />
+        </div>
+        <h3 className="font-medium mb-1">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+    </motion.button>
+);
+
 export const AdminPage = () => {
-    const { t, language, fetchSettings } = useLanguage();
+    const { t, language, fetchSettings, siteSettings } = useLanguage();
     const { user } = useAuth();
     const navigate = useNavigate();
     
-    const [activeTab, setActiveTab] = useState('settings');
-    const [users, setUsers] = useState([]);
-    const [news, setNews] = useState([]);
-    const [settings, setSettings] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    
-    const [showUserModal, setShowUserModal] = useState(false);
-    const [showNewsModal, setShowNewsModal] = useState(false);
-    const [editingUser, setEditingUser] = useState(null);
-    
-    const [userForm, setUserForm] = useState({ email: '', password: '', username: '', role: 'user' });
-    const [newsForm, setNewsForm] = useState({ title_pl: '', title_en: '', content_pl: '', content_en: '' });
+    const [analytics, setAnalytics] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [maintenanceMode, setMaintenanceMode] = useState(false);
 
     useEffect(() => {
-        if (activeTab === 'users') fetchUsers();
-        if (activeTab === 'news') fetchNews();
-        if (activeTab === 'settings') fetchSiteSettings();
-    }, [activeTab]);
-
-    const fetchUsers = async () => {
-        try {
-            const response = await axios.get(`${API_URL}/api/admin/users`, { withCredentials: true });
-            setUsers(response.data);
-        } catch (err) {
-            setError('Failed to fetch users');
+        fetchAnalytics();
+        if (siteSettings) {
+            setMaintenanceMode(siteSettings.maintenance_mode);
         }
-    };
+    }, [siteSettings]);
 
-    const fetchNews = async () => {
+    const fetchAnalytics = async () => {
         try {
-            const response = await axios.get(`${API_URL}/api/news`);
-            setNews(response.data);
+            const response = await axios.get(`${API_URL}/api/admin/analytics/summary`, { 
+                withCredentials: true 
+            });
+            setAnalytics(response.data);
         } catch (err) {
-            setError('Failed to fetch news');
-        }
-    };
-
-    const fetchSiteSettings = async () => {
-        try {
-            const response = await axios.get(`${API_URL}/api/settings`);
-            setSettings(response.data);
-        } catch (err) {
-            setError('Failed to fetch settings');
-        }
-    };
-
-    const handleSaveSettings = async () => {
-        setLoading(true);
-        setError('');
-        try {
-            await axios.put(`${API_URL}/api/admin/settings`, settings, { withCredentials: true });
-            setSuccess('Settings saved!');
-            fetchSettings();
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to save settings');
+            console.error('Failed to fetch analytics:', err);
         }
         setLoading(false);
     };
 
-    const handleCreateUser = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+    const toggleMaintenanceMode = async () => {
+        setSaving(true);
         try {
-            await axios.post(`${API_URL}/api/admin/users`, userForm, { withCredentials: true });
-            setShowUserModal(false);
-            setUserForm({ email: '', password: '', username: '', role: 'user' });
-            fetchUsers();
-            setSuccess('User created!');
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to create user');
-        }
-        setLoading(false);
-    };
-
-    const handleUpdateUser = async (e) => {
-        e.preventDefault();
-        if (!editingUser) return;
-        setLoading(true);
-        setError('');
-        try {
-            await axios.put(`${API_URL}/api/admin/users/${editingUser.id}`, 
-                { username: userForm.username, email: userForm.email, role: userForm.role },
+            await axios.put(`${API_URL}/api/admin/settings`, 
+                { maintenance_mode: !maintenanceMode },
                 { withCredentials: true }
             );
-            setEditingUser(null);
-            setShowUserModal(false);
-            setUserForm({ email: '', password: '', username: '', role: 'user' });
-            fetchUsers();
-            setSuccess('User updated!');
-            setTimeout(() => setSuccess(''), 3000);
+            setMaintenanceMode(!maintenanceMode);
+            fetchSettings();
         } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to update user');
+            console.error('Failed to update settings:', err);
         }
-        setLoading(false);
+        setSaving(false);
     };
 
-    const handleDeleteUser = async (userId) => {
-        if (!window.confirm('Are you sure you want to delete this user?')) return;
-        try {
-            await axios.delete(`${API_URL}/api/admin/users/${userId}`, { withCredentials: true });
-            fetchUsers();
-            setSuccess('User deleted!');
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to delete user');
-        }
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString(language === 'pl' ? 'pl-PL' : 'en-US', { 
+            day: 'numeric', 
+            month: 'short' 
+        });
     };
 
-    const handleCreateNews = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        try {
-            await axios.post(`${API_URL}/api/admin/news`, newsForm, { withCredentials: true });
-            setShowNewsModal(false);
-            setNewsForm({ title_pl: '', title_en: '', content_pl: '', content_en: '' });
-            fetchNews();
-            setSuccess('News created!');
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to create news');
-        }
-        setLoading(false);
-    };
-
-    const handleDeleteNews = async (newsId) => {
-        if (!window.confirm('Are you sure you want to delete this news?')) return;
-        try {
-            await axios.delete(`${API_URL}/api/admin/news/${newsId}`, { withCredentials: true });
-            fetchNews();
-            setSuccess('News deleted!');
-            setTimeout(() => setSuccess(''), 3000);
-        } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to delete news');
-        }
-    };
-
-    const openEditUser = (user) => {
-        setEditingUser(user);
-        setUserForm({ email: user.email, password: '', username: user.username, role: user.role });
-        setShowUserModal(true);
-    };
-
-    const tabs = [
-        { id: 'settings', label: t('settings'), icon: Settings },
-        { id: 'pages', label: 'Strony', icon: FileText },
-        { id: 'users', label: t('users'), icon: Users },
-        { id: 'news', label: t('news_management'), icon: Newspaper },
-    ];
+    const chartData = analytics?.chart_data?.map(d => ({
+        ...d,
+        name: formatDate(d.date)
+    })) || [];
 
     return (
         <div className="min-h-screen relative overflow-hidden" data-testid="admin-page">
@@ -183,338 +128,252 @@ export const AdminPage = () => {
             <Header />
 
             <main className="relative z-10 min-h-screen pt-20 pb-12 px-4 sm:px-6">
-                <div className="max-w-6xl mx-auto">
+                <div className="max-w-7xl mx-auto">
+                    {/* Header */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mb-8"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"
                     >
-                        <h1 className="font-display text-3xl sm:text-4xl font-bold flex items-center gap-3">
-                            <Shield className="h-8 w-8 text-primary" />
-                            <span className="text-gradient">{t('admin_panel')}</span>
-                        </h1>
+                        <div>
+                            <h1 className="font-display text-3xl sm:text-4xl font-bold flex items-center gap-3">
+                                <Shield className="h-8 w-8 text-primary" />
+                                <span className="text-gradient">Panel Administracyjny</span>
+                            </h1>
+                            <p className="text-muted-foreground mt-1">
+                                Witaj, {user?.username}! Zarządzaj swoją stroną.
+                            </p>
+                        </div>
+
+                        {/* Maintenance Toggle */}
+                        <div className="flex items-center gap-4 glass-card rounded-xl px-5 py-3">
+                            <div className="flex items-center gap-2">
+                                <Power className={`h-5 w-5 ${maintenanceMode ? 'text-yellow-500' : 'text-green-500'}`} />
+                                <span className="font-medium">
+                                    {maintenanceMode ? 'Tryb konserwacji' : 'Serwer aktywny'}
+                                </span>
+                            </div>
+                            <Switch
+                                checked={maintenanceMode}
+                                onCheckedChange={toggleMaintenanceMode}
+                                disabled={saving}
+                                data-testid="maintenance-toggle"
+                            />
+                        </div>
                     </motion.div>
 
-                    {error && (
-                        <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-                            {error}
+                    {loading ? (
+                        <div className="flex justify-center py-20">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                    )}
-                    {success && (
-                        <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-500 text-sm">
-                            {success}
-                        </div>
-                    )}
+                    ) : (
+                        <>
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                                <StatCard
+                                    icon={Users}
+                                    label="Użytkownicy"
+                                    value={analytics?.total_users || 0}
+                                    subValue={`${analytics?.admin_users || 0} adminów`}
+                                    color="primary"
+                                />
+                                <StatCard
+                                    icon={FileText}
+                                    label="Strony"
+                                    value={analytics?.total_pages || 0}
+                                    subValue={`${analytics?.custom_pages || 0} własnych`}
+                                    color="primary"
+                                />
+                                <StatCard
+                                    icon={Eye}
+                                    label="Odsłony (7 dni)"
+                                    value={analytics?.views_this_week || 0}
+                                    color="primary"
+                                />
+                                <StatCard
+                                    icon={BarChart3}
+                                    label="Status"
+                                    value={maintenanceMode ? 'Maintenance' : 'Online'}
+                                    subValue={maintenanceMode ? 'Tylko admini' : 'Publiczny'}
+                                    color={maintenanceMode ? 'yellow-500' : 'green-500'}
+                                />
+                            </div>
 
-                    <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-                        {tabs.map((tab) => (
-                            <Button
-                                key={tab.id}
-                                variant={activeTab === tab.id ? 'default' : 'outline'}
-                                onClick={() => {
-                                    if (tab.id === 'pages') {
-                                        navigate('/admin/pages');
-                                    } else {
-                                        setActiveTab(tab.id);
-                                    }
-                                }}
-                                className="flex items-center gap-2"
-                                data-testid={`tab-${tab.id}`}
-                            >
-                                <tab.icon className="h-4 w-4" />
-                                {tab.label}
-                            </Button>
-                        ))}
-                    </div>
-
-                    {/* Settings Tab */}
-                    {activeTab === 'settings' && settings && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="glass-card rounded-2xl p-6 sm:p-8"
-                        >
-                            <div className="space-y-6">
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-background/50">
-                                    <div className="flex items-center gap-3">
-                                        <Power className={`h-5 w-5 ${settings.maintenance_mode ? 'text-yellow-500' : 'text-green-500'}`} />
-                                        <div>
-                                            <p className="font-medium">{t('maintenance_mode')}</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {settings.maintenance_mode ? t('maintenance_enabled') : t('maintenance_disabled')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <Switch
-                                        checked={settings.maintenance_mode}
-                                        onCheckedChange={(checked) => setSettings({ ...settings, maintenance_mode: checked })}
-                                        data-testid="maintenance-toggle"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium flex items-center gap-2">
-                                        <Calendar className="h-4 w-4" />
-                                        {t('countdown_date')}
-                                    </label>
-                                    <Input
-                                        type="datetime-local"
-                                        value={settings.countdown_date?.slice(0, 16) || ''}
-                                        onChange={(e) => setSettings({ ...settings, countdown_date: e.target.value + ':00' })}
-                                        className="bg-background/50"
-                                        data-testid="countdown-date-input"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('maintenance_text')} (PL)</label>
-                                    <Input
-                                        value={settings.maintenance_text_pl || ''}
-                                        onChange={(e) => setSettings({ ...settings, maintenance_text_pl: e.target.value })}
-                                        className="bg-background/50"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('maintenance_text')} (EN)</label>
-                                    <Input
-                                        value={settings.maintenance_text_en || ''}
-                                        onChange={(e) => setSettings({ ...settings, maintenance_text_en: e.target.value })}
-                                        className="bg-background/50"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('maintenance_desc')} (PL)</label>
-                                    <textarea
-                                        value={settings.maintenance_description_pl || ''}
-                                        onChange={(e) => setSettings({ ...settings, maintenance_description_pl: e.target.value })}
-                                        className="w-full p-3 rounded-md bg-background/50 border border-input min-h-[100px] resize-none"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('maintenance_desc')} (EN)</label>
-                                    <textarea
-                                        value={settings.maintenance_description_en || ''}
-                                        onChange={(e) => setSettings({ ...settings, maintenance_description_en: e.target.value })}
-                                        className="w-full p-3 rounded-md bg-background/50 border border-input min-h-[100px] resize-none"
-                                    />
-                                </div>
-
-                                <Button 
-                                    onClick={handleSaveSettings} 
-                                    disabled={loading}
-                                    className="w-full sm:w-auto"
-                                    data-testid="save-settings-btn"
+                            {/* Charts Section */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                                {/* Views Chart */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="lg:col-span-2 glass-card rounded-xl p-6"
                                 >
-                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                                    {t('save')}
-                                </Button>
-                            </div>
-                        </motion.div>
-                    )}
+                                    <h3 className="font-display font-bold mb-4 flex items-center gap-2">
+                                        <TrendingUp className="h-5 w-5 text-primary" />
+                                        Odsłony strony (ostatnie 7 dni)
+                                    </h3>
+                                    <div className="h-[250px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={chartData}>
+                                                <defs>
+                                                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#D946EF" stopOpacity={0.3}/>
+                                                        <stop offset="95%" stopColor="#D946EF" stopOpacity={0}/>
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                                <XAxis 
+                                                    dataKey="name" 
+                                                    stroke="rgba(255,255,255,0.5)"
+                                                    fontSize={12}
+                                                />
+                                                <YAxis 
+                                                    stroke="rgba(255,255,255,0.5)"
+                                                    fontSize={12}
+                                                />
+                                                <Tooltip 
+                                                    contentStyle={{
+                                                        backgroundColor: 'rgba(0,0,0,0.8)',
+                                                        border: '1px solid rgba(217,70,239,0.3)',
+                                                        borderRadius: '8px'
+                                                    }}
+                                                />
+                                                <Area 
+                                                    type="monotone" 
+                                                    dataKey="views" 
+                                                    stroke="#D946EF" 
+                                                    fillOpacity={1} 
+                                                    fill="url(#colorViews)" 
+                                                    strokeWidth={2}
+                                                />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </motion.div>
 
-                    {/* Users Tab */}
-                    {activeTab === 'users' && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="glass-card rounded-2xl p-6 sm:p-8"
-                        >
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="font-display text-xl font-bold">{t('users')}</h2>
-                                <Button onClick={() => { setEditingUser(null); setUserForm({ email: '', password: '', username: '', role: 'user' }); setShowUserModal(true); }} data-testid="add-user-btn">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    {t('add_user')}
-                                </Button>
-                            </div>
-                            
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-border">
-                                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">{t('username')}</th>
-                                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">{t('email')}</th>
-                                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">{t('role')}</th>
-                                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">{t('actions')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {users.map((u) => (
-                                            <tr key={u.id} className="border-b border-border/50">
-                                                <td className="p-3">{u.username}</td>
-                                                <td className="p-3 text-muted-foreground">{u.email}</td>
-                                                <td className="p-3">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                                                        {u.role}
+                                {/* Top Pages */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                    className="glass-card rounded-xl p-6"
+                                >
+                                    <h3 className="font-display font-bold mb-4 flex items-center gap-2">
+                                        <BarChart3 className="h-5 w-5 text-primary" />
+                                        Popularne strony
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {analytics?.top_pages?.length > 0 ? (
+                                            analytics.top_pages.map((page, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+                                                    <span className="text-sm truncate flex-1">{page.path}</span>
+                                                    <span className="text-sm font-medium text-primary ml-2">
+                                                        {page.total_views}
                                                     </span>
-                                                </td>
-                                                <td className="p-3">
-                                                    <div className="flex gap-2">
-                                                        <Button size="sm" variant="ghost" onClick={() => openEditUser(u)}>
-                                                            <Edit2 className="h-4 w-4" />
-                                                        </Button>
-                                                        {u.id !== user?.id && (
-                                                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteUser(u.id)}>
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                </td>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground text-center py-4">
+                                                Brak danych
+                                            </p>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            </div>
+
+                            {/* Quick Actions */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.4 }}
+                                className="mb-8"
+                            >
+                                <h3 className="font-display font-bold mb-4">Szybkie akcje</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <QuickActionCard
+                                        icon={FileText}
+                                        title="Zarządzaj stronami"
+                                        description="Twórz i edytuj strony"
+                                        onClick={() => navigate('/admin/pages')}
+                                    />
+                                    <QuickActionCard
+                                        icon={Users}
+                                        title="Użytkownicy"
+                                        description="Zarządzaj kontami"
+                                        onClick={() => navigate('/admin/users')}
+                                    />
+                                    <QuickActionCard
+                                        icon={Settings}
+                                        title="Ustawienia SEO"
+                                        description="Optymalizacja wyszukiwarek"
+                                        onClick={() => navigate('/admin/seo')}
+                                    />
+                                    <QuickActionCard
+                                        icon={Eye}
+                                        title="Podgląd strony"
+                                        description="Zobacz stronę publiczną"
+                                        onClick={() => window.open('/', '_blank')}
+                                    />
+                                </div>
+                            </motion.div>
+
+                            {/* Recent Users */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5 }}
+                                className="glass-card rounded-xl p-6"
+                            >
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="font-display font-bold flex items-center gap-2">
+                                        <UserPlus className="h-5 w-5 text-primary" />
+                                        Ostatnio zarejestrowani
+                                    </h3>
+                                    <Link to="/admin/users" className="text-sm text-primary hover:underline">
+                                        Zobacz wszystkich
+                                    </Link>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b border-border">
+                                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Użytkownik</th>
+                                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Email</th>
+                                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Rola</th>
+                                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Data</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* News Tab */}
-                    {activeTab === 'news' && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="glass-card rounded-2xl p-6 sm:p-8"
-                        >
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="font-display text-xl font-bold">{t('news_management')}</h2>
-                                <Button onClick={() => setShowNewsModal(true)} data-testid="add-news-btn">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    {t('add_news')}
-                                </Button>
-                            </div>
-
-                            <div className="space-y-4">
-                                {news.map((item) => (
-                                    <div key={item.id} className="p-4 rounded-xl bg-background/50 flex justify-between items-start">
-                                        <div>
-                                            <h3 className="font-medium">{language === 'pl' ? item.title_pl : item.title_en}</h3>
-                                            <p className="text-sm text-muted-foreground mt-1">{language === 'pl' ? item.content_pl : item.content_en}</p>
-                                            <p className="text-xs text-muted-foreground/60 mt-2">{item.author_name} • {new Date(item.created_at).toLocaleDateString()}</p>
-                                        </div>
-                                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteNews(item.id)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                                {news.length === 0 && (
-                                    <p className="text-center text-muted-foreground py-8">{t('no_news')}</p>
-                                )}
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* User Modal */}
-                    {showUserModal && (
-                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="glass-card rounded-2xl p-6 w-full max-w-md"
-                            >
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="font-display text-xl font-bold">{editingUser ? t('edit') : t('add_user')}</h3>
-                                    <Button size="icon" variant="ghost" onClick={() => setShowUserModal(false)}>
-                                        <X className="h-4 w-4" />
-                                    </Button>
+                                        </thead>
+                                        <tbody>
+                                            {analytics?.recent_users?.map((u) => (
+                                                <tr key={u.id} className="border-b border-border/50">
+                                                    <td className="p-3 flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                                            {u.profile_picture ? (
+                                                                <img src={u.profile_picture} alt="" className="w-full h-full rounded-full object-cover" />
+                                                            ) : (
+                                                                <span className="text-xs font-medium">{u.username?.charAt(0).toUpperCase()}</span>
+                                                            )}
+                                                        </div>
+                                                        <span className="font-medium">{u.username}</span>
+                                                    </td>
+                                                    <td className="p-3 text-muted-foreground">{u.email}</td>
+                                                    <td className="p-3">
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                            u.role === 'admin' ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+                                                        }`}>
+                                                            {u.role}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-3 text-muted-foreground text-sm">
+                                                        {new Date(u.created_at).toLocaleDateString(language === 'pl' ? 'pl-PL' : 'en-US')}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <form onSubmit={editingUser ? handleUpdateUser : handleCreateUser} className="space-y-4">
-                                    <Input
-                                        placeholder={t('username')}
-                                        value={userForm.username}
-                                        onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
-                                        required
-                                    />
-                                    <Input
-                                        type="email"
-                                        placeholder={t('email')}
-                                        value={userForm.email}
-                                        onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                                        required
-                                    />
-                                    {!editingUser && (
-                                        <Input
-                                            type="password"
-                                            placeholder={t('password')}
-                                            value={userForm.password}
-                                            onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-                                            required
-                                        />
-                                    )}
-                                    <select
-                                        value={userForm.role}
-                                        onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
-                                        className="w-full p-2 rounded-md bg-background border border-input"
-                                    >
-                                        <option value="user">User</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
-                                    <div className="flex gap-2 justify-end">
-                                        <Button type="button" variant="outline" onClick={() => setShowUserModal(false)}>
-                                            {t('cancel')}
-                                        </Button>
-                                        <Button type="submit" disabled={loading}>
-                                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('save')}
-                                        </Button>
-                                    </div>
-                                </form>
                             </motion.div>
-                        </div>
-                    )}
-
-                    {/* News Modal */}
-                    {showNewsModal && (
-                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="glass-card rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
-                            >
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="font-display text-xl font-bold">{t('add_news')}</h3>
-                                    <Button size="icon" variant="ghost" onClick={() => setShowNewsModal(false)}>
-                                        <X className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                                <form onSubmit={handleCreateNews} className="space-y-4">
-                                    <Input
-                                        placeholder={`${t('title')} (PL)`}
-                                        value={newsForm.title_pl}
-                                        onChange={(e) => setNewsForm({ ...newsForm, title_pl: e.target.value })}
-                                        required
-                                    />
-                                    <Input
-                                        placeholder={`${t('title')} (EN)`}
-                                        value={newsForm.title_en}
-                                        onChange={(e) => setNewsForm({ ...newsForm, title_en: e.target.value })}
-                                        required
-                                    />
-                                    <textarea
-                                        placeholder={`${t('content')} (PL)`}
-                                        value={newsForm.content_pl}
-                                        onChange={(e) => setNewsForm({ ...newsForm, content_pl: e.target.value })}
-                                        className="w-full p-3 rounded-md bg-background border border-input min-h-[100px] resize-none"
-                                        required
-                                    />
-                                    <textarea
-                                        placeholder={`${t('content')} (EN)`}
-                                        value={newsForm.content_en}
-                                        onChange={(e) => setNewsForm({ ...newsForm, content_en: e.target.value })}
-                                        className="w-full p-3 rounded-md bg-background border border-input min-h-[100px] resize-none"
-                                        required
-                                    />
-                                    <div className="flex gap-2 justify-end">
-                                        <Button type="button" variant="outline" onClick={() => setShowNewsModal(false)}>
-                                            {t('cancel')}
-                                        </Button>
-                                        <Button type="submit" disabled={loading}>
-                                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('save')}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </motion.div>
-                        </div>
+                        </>
                     )}
                 </div>
             </main>

@@ -723,6 +723,175 @@ async def upload_image(request: Request, file: UploadFile = File(...)):
 async def root():
     return {"message": "KingdomCraft API"}
 
+# ===================
+# ANALYTICS ENDPOINTS
+# ===================
+@api_router.post("/analytics/pageview")
+async def track_pageview(request: Request):
+    """Track a page view"""
+    body = await request.json()
+    page_path = body.get("path", "/")
+    
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Update daily stats
+    await db.analytics.update_one(
+        {"date": today, "path": page_path},
+        {"$inc": {"views": 1}},
+        upsert=True
+    )
+    
+    # Update total page stats
+    await db.page_stats.update_one(
+        {"path": page_path},
+        {"$inc": {"total_views": 1}, "$set": {"last_viewed": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    
+    return {"status": "ok"}
+
+@api_router.get("/admin/analytics/summary")
+async def get_analytics_summary(request: Request):
+    """Get analytics summary for dashboard"""
+    await get_admin_user(request)
+    
+    # Total users
+    total_users = await db.users.count_documents({})
+    admin_users = await db.users.count_documents({"role": "admin"})
+    
+    # Total pages
+    total_pages = await db.pages.count_documents({})
+    special_pages = await db.pages.count_documents({"is_special": True})
+    
+    # Get last 7 days of views
+    today = datetime.now(timezone.utc)
+    week_ago = today - timedelta(days=7)
+    
+    daily_views = await db.analytics.find({
+        "date": {"$gte": week_ago.strftime("%Y-%m-%d")}
+    }, {"_id": 0}).to_list(1000)
+    
+    # Aggregate by date
+    views_by_date = {}
+    for entry in daily_views:
+        date = entry["date"]
+        views_by_date[date] = views_by_date.get(date, 0) + entry.get("views", 0)
+    
+    # Fill missing dates with 0
+    chart_data = []
+    for i in range(7):
+        date = (today - timedelta(days=6-i)).strftime("%Y-%m-%d")
+        chart_data.append({
+            "date": date,
+            "views": views_by_date.get(date, 0)
+        })
+    
+    # Total views
+    total_views = sum(v.get("views", 0) for v in daily_views)
+    
+    # Top pages
+    top_pages = await db.page_stats.find({}, {"_id": 0}).sort("total_views", -1).limit(5).to_list(5)
+    
+    # Recent users
+    recent_users = await db.users.find({}, {"_id": 0, "password_hash": 0}).sort("created_at", -1).limit(5).to_list(5)
+    
+    return {
+        "total_users": total_users,
+        "admin_users": admin_users,
+        "regular_users": total_users - admin_users,
+        "total_pages": total_pages,
+        "custom_pages": total_pages - special_pages,
+        "views_this_week": total_views,
+        "chart_data": chart_data,
+        "top_pages": top_pages,
+        "recent_users": recent_users
+    }
+
+# ===================
+# SEO ENDPOINTS
+# ===================
+@api_router.get("/seo/sitemap.xml")
+async def get_sitemap():
+    """Generate sitemap.xml"""
+    from fastapi.responses import Response
+    
+    base_url = os.environ.get("FRONTEND_URL", "https://kingdomcraft.pl")
+    
+    pages = await db.pages.find({"show_in_menu": True}, {"_id": 0, "slug": 1, "updated_at": 1}).to_list(100)
+    
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    # Home page
+    xml += f'  <url>\n    <loc>{base_url}/</loc>\n    <priority>1.0</priority>\n  </url>\n'
+    
+    # Rules page
+    xml += f'  <url>\n    <loc>{base_url}/rules</loc>\n    <priority>0.8</priority>\n  </url>\n'
+    
+    # Dynamic pages
+    for page in pages:
+        updated = page.get("updated_at", "")[:10] if page.get("updated_at") else ""
+        xml += f'  <url>\n'
+        xml += f'    <loc>{base_url}/strona/{page["slug"]}</loc>\n'
+        if updated:
+            xml += f'    <lastmod>{updated}</lastmod>\n'
+        xml += f'    <priority>0.7</priority>\n'
+        xml += f'  </url>\n'
+    
+    xml += '</urlset>'
+    
+    return Response(content=xml, media_type="application/xml")
+
+@api_router.get("/seo/robots.txt")
+async def get_robots():
+    """Generate robots.txt"""
+    from fastapi.responses import PlainTextResponse
+    
+    base_url = os.environ.get("FRONTEND_URL", "https://kingdomcraft.pl")
+    
+    robots = f"""User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /login
+Disallow: /register
+
+Sitemap: {base_url}/api/seo/sitemap.xml
+"""
+    return PlainTextResponse(content=robots)
+
+@api_router.get("/seo/meta/{slug}")
+async def get_page_meta(slug: str):
+    """Get SEO meta data for a page"""
+    page = await db.pages.find_one({"slug": slug}, {"_id": 0})
+    if not page:
+        return {
+            "title": "KingdomCraft",
+            "description": "Serwer Minecraft KingdomCraft",
+            "keywords": "minecraft, server, kingdomcraft"
+        }
+    
+    # Get title from first available language
+    langs = page.get("languages", {})
+    title = "KingdomCraft"
+    description = "Serwer Minecraft KingdomCraft"
+    
+    for lang_data in langs.values():
+        if lang_data.get("title"):
+            title = f"{lang_data['title']} | KingdomCraft"
+            break
+        # Try to get description from first text block
+        for block in lang_data.get("blocks", []):
+            if block.get("type") == "text" and block.get("content", {}).get("tag") == "p":
+                description = block["content"].get("text", description)[:160]
+                break
+    
+    return {
+        "title": title,
+        "description": description,
+        "keywords": "minecraft, server, kingdomcraft, gaming"
+    }
+
 # Include router
 app.include_router(api_router)
 
